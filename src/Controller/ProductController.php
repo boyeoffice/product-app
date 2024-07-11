@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Service\ProductService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,6 +13,13 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api', name: 'api_')]
 class ProductController extends AbstractController
 {
+    private $productService;
+
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
+
     #[Route('/products', name: 'product_index', methods: 'GET')]
     public function index(EntityManagerInterface $entityManagerInterface): JsonResponse
     {
@@ -33,19 +41,10 @@ class ProductController extends AbstractController
     }
 
     #[Route('/products', name: 'product_store', methods: 'POST')]
-    public function store(EntityManagerInterface $entityManager, Request $request): JsonResponse
+    public function store(Request $request): JsonResponse
     {
-        $product = new Product();
-        $product->setName($request->request->get('name'));
-        $product->setPrice($request->request->get('price'));
-        $product->setQuantity($request->request->get('quantity'));
-        $product->setDescription($request->request->get('description'));
+        $product = $this->productService->createProduct($request->request->all());
 
-        // tell Doctrine you want to (eventually) save the Product (no queries yet)
-        $entityManager->persist($product);
-
-        // actually executes the queries (i.e. the INSERT query)
-        $entityManager->flush();
         return $this->json([
             'message' => 'Product created successfully.',
             'data' => $product
