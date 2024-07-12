@@ -31,9 +31,11 @@ class ProductController extends AbstractController
             $data[] = [
                 'id' => $product->getId(),
                 'name' => $product->getName(),
-                'description' => $product->getDescription()
+                'description' => $product->getDescription(),
+                'quantity' => $product->getQuantity()
             ];
         endforeach;
+
         return $this->json([
             'message' => 'Welcome to your new controller!',
             'data' => $data,
@@ -49,5 +51,27 @@ class ProductController extends AbstractController
             'message' => 'Product created successfully.',
             'data' => $product
         ],201);
+    }
+
+    #[Route('/products/{id}', name: 'product_show', methods: 'GET')]
+    public function show (EntityManagerInterface $em, int $id): JsonResponse
+    {
+        $product = $em->getRepository(Product::class)->find($id);
+
+        if (is_null($product)):
+            return $this->json([
+               'message' => 'Product not found.'
+            ], 404);
+        endif;
+
+        return $this->json([
+            'message' => 'Product retrieved successfully.',
+            'data' => [
+                'id' => $product->getId(),
+                'name' => $product->getName(),
+                'description' => $product->getDescription(),
+                'quantity' => $product->getQuantity()
+            ]
+        ], 200);
     }
 }
